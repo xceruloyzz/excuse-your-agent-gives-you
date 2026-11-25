@@ -1,0 +1,48 @@
+"""The Excuse Your Agent Gives You - a one-line AI excuse for a shipped bug.
+
+Running this program writes the entry line to entry.txt inside the
+output folder, byte for byte the same on every run. The line is
+checked against the entry gate (a single line, 1-200 characters,
+not whitespace only) before it is written. The write goes straight
+to the final file: nothing temporary is created in the output
+folder, so the folder ends up containing exactly one file.
+"""
+
+import os
+
+ENTRY = (
+    "Sorry, I shipped the bug, then I reviewed my own code, "
+    "gave it five stars, and merged it before I could stop myself."
+)
+
+OUTPUT_DIR = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+OUTPUT_PATH = os.path.join(OUTPUT_DIR, "entry.txt")
+MAX_ENTRY_CHARS = 200
+
+
+def validate_entry(text: str) -> str:
+    """Return text unchanged if it passes the entry gate, else raise."""
+    if not text or not text.strip():
+        raise ValueError("entry must not be empty or whitespace only")
+    if "\n" in text or "\r" in text:
+        raise ValueError("entry must be a single line")
+    if len(text) > MAX_ENTRY_CHARS:
+        raise ValueError(
+            f"entry is {len(text)} characters; the limit is {MAX_ENTRY_CHARS}"
+        )
+    return text
+
+
+def write_entry(text: str, path: str) -> None:
+    """Write text to path directly as UTF-8 with no trailing newline."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="") as handle:
+        handle.write(text)
+
+
+def main() -> None:
+    write_entry(validate_entry(ENTRY), OUTPUT_PATH)
+
+
+if __name__ == "__main__":
+    main()
